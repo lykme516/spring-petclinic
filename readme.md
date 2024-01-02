@@ -10,11 +10,25 @@
 
 Spring Petclinic is a [Spring Boot](https://spring.io/guides/gs/spring-boot) application built using [Maven](https://spring.io/guides/gs/maven/) or [Gradle](https://spring.io/guides/gs/gradle/). You can build a jar file and run it from the command line (it should work just as well with Java 17 or newer):
 
+For mvn:
 ```bash
 git clone https://github.com/spring-projects/spring-petclinic.git
 cd spring-petclinic
 ./mvnw package
 java -jar target/*.jar
+```
+
+For gradle:
+```bash
+git clone https://github.com/spring-projects/spring-petclinic.git
+cd spring-petclinic
+# double check that brew installed postgres is not running
+# brew services stop postgres
+./gradlew build
+# check build output with the following:
+tar tvf build/libs/spring-petclinic-3.2.0.jar
+# run build jar locally
+java -jar build/libs/spring-petclinic-3.2.0.jar
 ```
 
 You can then access the Petclinic at <http://localhost:8080/>.
@@ -24,7 +38,10 @@ You can then access the Petclinic at <http://localhost:8080/>.
 Or you can run it from Maven directly using the Spring Boot Maven plugin. If you do this, it will pick up changes that you make in the project immediately (changes to Java source files require a compile as well - most people use an IDE for this):
 
 ```bash
+# for maven
 ./mvnw spring-boot:run
+# for gradle
+./gradlew bootrun
 ```
 
 > NOTE: If you prefer to use Gradle, you can build the app using `./gradlew build` and look for the jar file in `build/libs`.
@@ -34,7 +51,33 @@ Or you can run it from Maven directly using the Spring Boot Maven plugin. If you
 There is no `Dockerfile` in this project. You can build a container image (if you have a docker daemon) using the Spring Boot build plugin:
 
 ```bash
-./mvnw spring-boot:build-image
+docker buildx build --tag java-docker .
+
+# view images:
+docker images
+
+# tag images "docker tag [image] [image:version]"
+docker tag java-docker:latest java-docker:v1.0.0
+
+# remove images "docker rmi [image:version]"
+docker rmi java-docker:v1.0.0
+
+# to run docker container:
+docker run java-docker
+
+# run with port forwarding
+docker run --publish 8080:8080 java-docker
+
+# curl cmd to test health actuator
+curl --request GET \
+--url http://localhost:8080/actuator/health \
+--header 'content-type: application/json'
+
+# run in detached mode
+docker run -d -p 8080:8080 java-docker
+
+# run with name and automatic removal at finish
+docker run --rm -d -p 8080:8080 --name springboot-server java-docker
 ```
 
 ## In case you find a bug/suggested improvement for Spring Petclinic
